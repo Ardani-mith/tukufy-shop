@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Trash2, X, Plus, Minus, CheckCircle, Info } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -7,6 +7,10 @@ import Home from './pages/Home';
 import ProductList from './pages/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+
+const AUTH_KEY = 'tukufy_user';
 
 export default function App() {
   const [cart, setCart] = useState([]);
@@ -14,6 +18,35 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
+  const [user, setUser] = useState(null);
+  const [redirectTo, setRedirectTo] = useState(null);
+
+  // Initialize auth from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(AUTH_KEY);
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        localStorage.removeItem(AUTH_KEY);
+      }
+    }
+  }, []);
+
+  const isLoggedIn = user !== null;
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setRedirectTo(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_KEY);
+    setUser(null);
+    setCart([]);
+    setFavorites([]);
+    showToast('You have been logged out.', 'info');
+  };
 
   // Toast System
   const showToast = (message, type = 'success') => {
@@ -26,6 +59,11 @@ export default function App() {
 
   // Add to Cart Logic
   const handleAddToCart = (product, quantity = 1) => {
+    if (!isLoggedIn) {
+      setRedirectTo('/login');
+      showToast('Please log in to add items to your cart.', 'info');
+      return;
+    }
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.product._id === product._id);
       if (existingItem) {
@@ -102,12 +140,19 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {redirectTo && (
+        <Navigate to={redirectTo} state={{ from: window.location.pathname }} replace />
+      )}
       <div className="app-wrapper">
-        <Header 
-          cartCount={cartItemCount} 
+        <Header
+          cartCount={cartItemCount}
           favoritesCount={favorites.length}
           onOpenCart={() => setIsCartOpen(true)}
           onOpenFavorites={() => setIsFavoritesOpen(true)}
+          isLoggedIn={isLoggedIn}
+          user={user}
+          onLogout={handleLogout}
+          showToast={showToast}
         />
 
         <main className="main-content">
@@ -142,9 +187,17 @@ export default function App() {
                 />
               } 
             />
-            <Route 
-              path="/admin" 
-              element={<Admin showToast={showToast} />} 
+            <Route
+              path="/admin"
+              element={<Admin showToast={showToast} />}
+            />
+            <Route
+              path="/login"
+              element={<Login onLogin={handleLogin} showToast={showToast} />}
+            />
+            <Route
+              path="/signup"
+              element={<SignUp onSignUp={handleLogin} showToast={showToast} />}
             />
           </Routes>
         </main>

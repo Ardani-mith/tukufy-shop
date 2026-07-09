@@ -40,8 +40,8 @@ router.get('/:id', async (req, res) => {
 // POST create a new product
 router.post('/', async (req, res) => {
   try {
-    const { name, description, price, category, image, stock, rating, reviewsCount } = req.body;
-    
+    const { name, description, price, category, image, stock, rating, reviewsCount, specifications } = req.body;
+
     const newProduct = new Product({
       name,
       description,
@@ -50,7 +50,8 @@ router.post('/', async (req, res) => {
       image,
       stock: stock !== undefined ? Number(stock) : 10,
       rating: rating !== undefined ? Number(rating) : 4.5,
-      reviewsCount: reviewsCount !== undefined ? Number(reviewsCount) : 12
+      reviewsCount: reviewsCount !== undefined ? Number(reviewsCount) : 12,
+      specifications: specifications || []
     });
 
     const savedProduct = await newProduct.save();
@@ -63,8 +64,8 @@ router.post('/', async (req, res) => {
 // PUT update a product by ID
 router.put('/:id', async (req, res) => {
   try {
-    const { name, description, price, category, image, stock, rating, reviewsCount } = req.body;
-    
+    const { name, description, price, category, image, stock, rating, reviewsCount, specifications } = req.body;
+
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
@@ -78,6 +79,7 @@ router.put('/:id', async (req, res) => {
     if (stock !== undefined) product.stock = Number(stock);
     if (rating !== undefined) product.rating = Number(rating);
     if (reviewsCount !== undefined) product.reviewsCount = Number(reviewsCount);
+    if (specifications !== undefined) product.specifications = specifications;
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);

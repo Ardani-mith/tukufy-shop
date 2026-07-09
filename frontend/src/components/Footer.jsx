@@ -1,7 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Footer() {
+  const location = useLocation();
+
+  // Hide footer on auth pages
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  if (isAuthPage) return null;
+
   return (
     <footer className="site-footer">
       <div className="container footer-container">
@@ -14,13 +20,13 @@ export default function Footer() {
         </div>
         
         <div className="footer-links-group">
-          <div className="footer-links-col">
+          {/* <div className="footer-links-col">
             <h4>Products</h4>
             <Link to="/products?category=Headphones">Headphones</Link>
             <Link to="/products?category=Earbuds">Earbuds</Link>
             <Link to="/products?category=Speakers">Speakers</Link>
             <Link to="/products?category=Accessories">Accessories</Link>
-          </div>
+          </div> */}
           
           <div className="footer-links-col">
             <h4>Support</h4>

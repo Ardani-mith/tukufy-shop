@@ -1,9 +1,48 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Heart, Phone, Shield, Headphones } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, Shield, Plus, LogOut, Package, ChevronDown } from 'lucide-react';
 
-export default function Header({ cartCount, favoritesCount, onOpenCart, onOpenFavorites }) {
+export default function Header({
+  cartCount,
+  favoritesCount,
+  onOpenCart,
+  onOpenFavorites,
+  isLoggedIn,
+  user,
+  onLogout,
+  showToast
+}) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Hide header on auth pages
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  if (isAuthPage) return null;
+
+  const handleCartClick = () => {
+    onOpenCart();
+  };
+
+  const handleFavoritesClick = () => {
+    onOpenFavorites();
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <header className="site-header">
@@ -17,55 +56,84 @@ export default function Header({ cartCount, favoritesCount, onOpenCart, onOpenFa
           <span className="logo-text">Tukufy.</span>
         </Link>
 
-        {/* Navigation */}
+        {/* Navigation — General */}
         <nav className="nav-menu">
-          <Link to="/products?category=Headphones" className={`nav-link ${location.search.includes('category=Headphones') ? 'active' : ''}`}>
-            Headphones
+          <Link
+            to="/"
+            className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+          >
+            Home
           </Link>
-          <Link to="/products?category=Earbuds" className={`nav-link ${location.search.includes('category=Earbuds') ? 'active' : ''}`}>
-            Earbuds
-          </Link>
-          <Link to="/products?category=Speakers" className={`nav-link ${location.search.includes('category=Speakers') ? 'active' : ''}`}>
-            Speakers
-          </Link>
-          <Link to="/products?category=Accessories" className={`nav-link ${location.search.includes('category=Accessories') ? 'active' : ''}`}>
-            Accessories
+          <Link
+            to="/products"
+            className={`nav-link ${location.pathname === '/products' ? 'active' : ''}`}
+          >
+            Explore Products
           </Link>
         </nav>
 
         {/* Contact and Actions */}
         <div className="header-actions">
-          {/* Phone contact */}
-          <div className="contact-phone">
-            <Phone size={16} />
-            <span>+6256 4788 2215</span>
-          </div>
-
-          {/* Admin link */}
-          <Link 
-            to="/admin" 
-            className={`admin-panel-link ${location.pathname === '/admin' ? 'active' : ''}`}
-            title="Admin CRUD Panel"
-          >
-            <Shield size={16} />
-            <span>Admin</span>
-          </Link>
-
           {/* Favorites */}
-          <button className="action-icon-btn" onClick={onOpenFavorites} title="Favorites">
+          <button className="action-icon-btn" onClick={handleFavoritesClick} title="Favorites">
             <Heart size={20} />
             {favoritesCount > 0 && <span className="action-badge bg-red">{favoritesCount}</span>}
           </button>
 
           {/* Cart */}
-          <button className="action-icon-btn" onClick={onOpenCart} title="My Cart">
+          <button className="action-icon-btn" onClick={handleCartClick} title="My Cart">
             <ShoppingCart size={20} />
             {cartCount > 0 && <span className="action-badge">{cartCount}</span>}
           </button>
 
-          {/* User Signin/Signup */}
-          <button className="btn btn-secondary btn-header-login">Log In</button>
-          <button className="btn btn-primary btn-header-signup">Sign Up</button>
+          {/* Auth: Dropdown for Logged In or Login/Signup Buttons */}
+          {isLoggedIn ? (
+            <div className="user-dropdown-container" ref={dropdownRef}>
+              <button className="user-trigger-btn" onClick={toggleDropdown}>
+                <span className="user-avatar">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </span>
+                <span className="user-name">{user?.name}</span>
+                <ChevronDown size={14} className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="user-dropdown-menu">
+                  <div className="dropdown-info">
+                    <p className="dropdown-user-name">{user?.name}</p>
+                    <p className="dropdown-user-role">{user?.role || 'Customer'}</p>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  
+                  <Link to="/admin" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                    <Plus size={16} />
+                    <span>Add Product</span>
+                  </Link>
+                  
+                  <hr className="dropdown-divider" />
+                  <button 
+                    className="dropdown-item text-danger" 
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      onLogout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-secondary btn-header-login">
+                Log In
+              </Link>
+              <Link to="/signup" className="btn btn-primary btn-header-signup">
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -166,32 +234,6 @@ export default function Header({ cartCount, favoritesCount, onOpenCart, onOpenFa
           gap: 20px;
         }
 
-        .contact-phone {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--color-text-secondary);
-        }
-
-        .admin-panel-link {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--color-text-secondary);
-          padding: 6px 12px;
-          border-radius: var(--radius-sm);
-          transition: var(--transition-fast);
-        }
-
-        .admin-panel-link:hover, .admin-panel-link.active {
-          color: var(--color-text-primary);
-          background-color: #f0f0f0;
-        }
-
         .action-icon-btn {
           background: none;
           border: none;
@@ -230,6 +272,130 @@ export default function Header({ cartCount, favoritesCount, onOpenCart, onOpenFa
           background-color: var(--color-error);
         }
 
+        /* New Dropdown Menu Styling */
+        .user-dropdown-container {
+          position: relative;
+        }
+
+        .user-trigger-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: var(--radius-md);
+          transition: var(--transition-fast);
+        }
+
+        .user-trigger-btn:hover {
+          background-color: #f5f5f5;
+        }
+
+        .user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background-color: #000;
+          color: white;
+          font-size: 14px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .user-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .dropdown-arrow {
+          color: var(--color-text-secondary);
+          transition: transform 0.2s ease;
+        }
+
+        .dropdown-arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .user-dropdown-menu {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          background-color: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+          min-width: 180px;
+          padding: 6px 0;
+          animation: fadeIn 0.15s ease;
+        }
+
+        .dropdown-info {
+          padding: 10px 16px 6px 16px;
+        }
+
+        .dropdown-user-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-text-primary);
+          margin: 0;
+        }
+
+        .dropdown-user-role {
+          font-size: 12px;
+          color: var(--color-text-secondary);
+          margin: 2px 0 0 0;
+          text-transform: capitalize;
+        }
+
+        .dropdown-divider {
+          border: 0;
+          border-top: 1px solid var(--color-border);
+          margin: 6px 0;
+        }
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 10px 16px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+          text-align: left;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-decoration: none;
+          transition: background-color 0.15s ease;
+        }
+
+        .dropdown-item:hover {
+          background-color: #f5f5f5;
+        }
+
+        .dropdown-item.text-danger {
+          color: var(--color-error, #dc2626);
+        }
+        
+        .dropdown-item.text-danger:hover {
+          background-color: #fef2f2;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         .btn-header-login {
           font-size: 14px;
           padding: 8px 18px;
@@ -244,11 +410,11 @@ export default function Header({ cartCount, favoritesCount, onOpenCart, onOpenFa
         }
 
         @media (max-width: 992px) {
-          .contact-phone, .btn-header-login, .btn-header-signup {
+          .btn-header-login, .btn-header-signup {
             display: none;
           }
-          .nav-menu {
-            gap: 16px;
+          .user-name, .dropdown-arrow {
+            display: none;
           }
         }
 

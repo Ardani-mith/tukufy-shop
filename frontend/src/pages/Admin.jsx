@@ -24,7 +24,8 @@ export default function Admin({ showToast }) {
     price: '',
     stock: '',
     image: '',
-    description: ''
+    description: '',
+    specifications: []
   });
 
   const fetchProducts = () => {
@@ -57,6 +58,29 @@ export default function Admin({ showToast }) {
     }));
   };
 
+  // Specification handlers
+  const handleSpecChange = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = [...prev.specifications];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, specifications: updated };
+    });
+  };
+
+  const addSpecRow = () => {
+    setFormData((prev) => ({
+      ...prev,
+      specifications: [...prev.specifications, { key: '', value: '' }]
+    }));
+  };
+
+  const removeSpecRow = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      specifications: prev.specifications.filter((_, i) => i !== index)
+    }));
+  };
+
   // Open Add Modal
   const openAddModal = () => {
     setFormData({
@@ -65,7 +89,8 @@ export default function Admin({ showToast }) {
       price: '',
       stock: '',
       image: '',
-      description: ''
+      description: '',
+      specifications: []
     });
     setIsAddModalOpen(true);
   };
@@ -111,7 +136,8 @@ export default function Admin({ showToast }) {
       price: product.price,
       stock: product.stock,
       image: product.image,
-      description: product.description
+      description: product.description,
+      specifications: product.specifications || []
     });
     setIsEditModalOpen(true);
   };
@@ -383,6 +409,58 @@ export default function Admin({ showToast }) {
                     placeholder="Enter detailed description of features and build..."
                   ></textarea>
                 </div>
+
+                {/* Specifications (Optional) */}
+                <div className="form-group">
+                  <label className="form-label">
+                    Specifications <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(Optional)</span>
+                  </label>
+                  {formData.specifications.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+                      No specifications added yet.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                      {formData.specifications.map((spec, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="e.g. Weight"
+                            value={spec.key}
+                            onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                            className="form-control"
+                            style={{ flex: 1 }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="e.g. 250g"
+                            value={spec.value}
+                            onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                            className="form-control"
+                            style={{ flex: 1 }}
+                          />
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeSpecRow(idx)}
+                            title="Remove specification"
+                            style={{ color: 'var(--color-error)', flexShrink: 0 }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={addSpecRow}
+                    style={{ fontSize: '13px', padding: '6px 14px' }}
+                  >
+                    <Plus size={14} /> Add Spec
+                  </button>
+                </div>
               </div>
 
               <div className="modal-footer">
@@ -490,6 +568,58 @@ export default function Admin({ showToast }) {
                     className="form-control"
                     rows="4"
                   ></textarea>
+                </div>
+
+                {/* Specifications (Optional) */}
+                <div className="form-group">
+                  <label className="form-label">
+                    Specifications <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(Optional)</span>
+                  </label>
+                  {formData.specifications.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+                      No specifications added yet.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                      {formData.specifications.map((spec, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="e.g. Weight"
+                            value={spec.key}
+                            onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                            className="form-control"
+                            style={{ flex: 1 }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="e.g. 250g"
+                            value={spec.value}
+                            onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                            className="form-control"
+                            style={{ flex: 1 }}
+                          />
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeSpecRow(idx)}
+                            title="Remove specification"
+                            style={{ color: 'var(--color-error)', flexShrink: 0 }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={addSpecRow}
+                    style={{ fontSize: '13px', padding: '6px 14px' }}
+                  >
+                    <Plus size={14} /> Add Spec
+                  </button>
                 </div>
               </div>
 

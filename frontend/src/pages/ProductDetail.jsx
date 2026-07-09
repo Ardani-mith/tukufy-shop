@@ -14,7 +14,8 @@ export default function ProductDetail({ onAddToCart, toggleFavorite, favorites }
   useEffect(() => {
     window.scrollTo(0, 0);
     setLoading(true);
-    
+    setActiveTab('description');
+
     // Fetch product details
     fetch(`http://localhost:5001/api/products/${id}`)
       .then((res) => {
@@ -24,7 +25,7 @@ export default function ProductDetail({ onAddToCart, toggleFavorite, favorites }
       .then((data) => {
         setProduct(data);
         setQuantity(1);
-        
+
         // Fetch related products in the same category
         return fetch(`http://localhost:5001/api/products?category=${encodeURIComponent(data.category)}`);
       })
@@ -203,50 +204,42 @@ export default function ProductDetail({ onAddToCart, toggleFavorite, favorites }
           {/* Tabs for details */}
           <div className="detail-tabs-section">
             <div className="tabs-header">
-              <button 
+              <button
                 className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
                 onClick={() => setActiveTab('description')}
               >
                 Overview
               </button>
-              <button 
-                className={`tab-btn ${activeTab === 'specs' ? 'active' : ''}`}
-                onClick={() => setActiveTab('specs')}
-              >
-                Specifications
-              </button>
+              {product.specifications && product.specifications.length > 0 && (
+                <button
+                  className={`tab-btn ${activeTab === 'specs' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('specs')}
+                >
+                  Specifications
+                </button>
+              )}
             </div>
-            
+
             <div className="tab-body">
               {activeTab === 'description' ? (
                 <p className="tab-description-text">{product.description}</p>
               ) : (
                 <table className="specs-table">
                   <tbody>
-                    <tr>
-                      <td>Category</td>
-                      <td>{product.category}</td>
-                    </tr>
-                    <tr>
-                      <td>Item Weight</td>
-                      <td>0.65 lbs</td>
-                    </tr>
-                    <tr>
-                      <td>Dimensions</td>
-                      <td>7.4 x 6.3 x 3.1 inches</td>
-                    </tr>
-                    <tr>
-                      <td>Model Year</td>
-                      <td>2026</td>
-                    </tr>
-                    <tr>
-                      <td>Connection</td>
-                      <td>Bluetooth 5.2 / USB-C</td>
-                    </tr>
-                    <tr>
-                      <td>Warranty</td>
-                      <td>1 Year Manufacturer Warranty</td>
-                    </tr>
+                    {product.specifications && product.specifications.length > 0 ? (
+                      product.specifications.map((spec, index) => (
+                        <tr key={index}>
+                          <td>{spec.key}</td>
+                          <td>{spec.value}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="2" style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                          No specifications available for this product.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               )}

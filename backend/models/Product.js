@@ -40,6 +40,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     min: [0, 'Reviews count cannot be negative'],
     default: 12
+  },
+  specifications: {
+    type: [{ key: { type: String, trim: true }, value: { type: String, trim: true } }],
+    default: []
   }
 }, {
   timestamps: true
