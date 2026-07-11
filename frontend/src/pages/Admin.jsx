@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, X, AlertTriangle, Search, Info } from 'lucide-react';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
 
 export default function Admin({ showToast }) {
   const [products, setProducts] = useState([]);
@@ -30,11 +31,7 @@ export default function Admin({ showToast }) {
 
   const fetchProducts = () => {
     setLoading(true);
-    fetch('http://localhost:5001/api/products')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load products');
-        return res.json();
-      })
+    getProducts()
       .then((data) => {
         setProducts(data);
         setLoading(false);
@@ -105,17 +102,7 @@ export default function Admin({ showToast }) {
       return;
     }
 
-    fetch('http://localhost:5001/api/products', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Error creating product');
-        return res.json();
-      })
+    createProduct(formData)
       .then((data) => {
         showToast(`Product "${data.name}" added successfully!`);
         setIsAddModalOpen(false);
@@ -151,17 +138,7 @@ export default function Admin({ showToast }) {
       return;
     }
 
-    fetch(`http://localhost:5001/api/products/${currentProduct._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Error updating product');
-        return res.json();
-      })
+    updateProduct(currentProduct._id, formData)
       .then((data) => {
         showToast(`Product "${data.name}" updated successfully!`);
         setIsEditModalOpen(false);
@@ -181,13 +158,7 @@ export default function Admin({ showToast }) {
 
   // Handle Delete Product
   const handleDeleteProduct = () => {
-    fetch(`http://localhost:5001/api/products/${currentProduct._id}`, {
-      method: 'DELETE'
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Error deleting product');
-        return res.json();
-      })
+    deleteProduct(currentProduct._id)
       .then(() => {
         showToast(`Product deleted successfully!`);
         setIsDeleteModalOpen(false);

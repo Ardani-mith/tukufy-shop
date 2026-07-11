@@ -101,18 +101,20 @@ export default function Header({
                 <div className="user-dropdown-menu">
                   <div className="dropdown-info">
                     <p className="dropdown-user-name">{user?.name}</p>
-                    <p className="dropdown-user-role">{user?.role || 'Customer'}</p>
+                    <p className="dropdown-user-role">{user?.role === 'admin' ? 'Admin' : 'Customer'}</p>
                   </div>
+                  {user?.role === 'admin' && (
+                    <>
+                      <hr className="dropdown-divider" />
+                      <Link to="/admin" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                        <Plus size={16} />
+                        <span>Add Product</span>
+                      </Link>
+                    </>
+                  )}
                   <hr className="dropdown-divider" />
-                  
-                  <Link to="/admin" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
-                    <Plus size={16} />
-                    <span>Add Product</span>
-                  </Link>
-                  
-                  <hr className="dropdown-divider" />
-                  <button 
-                    className="dropdown-item text-danger" 
+                  <button
+                    className="dropdown-item text-danger"
                     onClick={() => {
                       setIsDropdownOpen(false);
                       onLogout();
@@ -202,7 +204,7 @@ export default function Header({
         .nav-menu {
           display: flex;
           align-items: center;
-          gap: 32px;
+          gap: 48px;
         }
 
         .nav-link {

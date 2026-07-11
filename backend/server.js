@@ -1,10 +1,13 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import productRoutes from './routes/products.js';
+import authRoutes from './routes/auth.js';
 import Product from './models/Product.js';
+import User from './models/User.js';
 
 dotenv.config();
 
@@ -12,11 +15,16 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // API Routes
 app.use('/api/products', productRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -62,6 +70,19 @@ async function startServer() {
 
 async function seedDatabase() {
   try {
+    // Seed default admin user if none exists
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('No users found. Creating default admin user...');
+      await User.create({
+        name: 'Admin',
+        email: 'admin@tukufy.com',
+        password: 'admin123',
+        role: 'admin'
+      });
+      console.log('Default admin created: admin@tukufy.com / admin123');
+    }
+
     const count = await Product.countDocuments();
     if (count === 0) {
       console.log('Database is empty. Seeding initial products...');

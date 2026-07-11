@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, Heart, ArrowLeft, ShieldCheck, Truck, RefreshCw, ShoppingBag, Plus, Minus, AlertCircle } from 'lucide-react';
+import { getProduct, getProducts } from '../services/api';
 
 export default function ProductDetail({ onAddToCart, toggleFavorite, favorites }) {
   const { id } = useParams();
@@ -17,19 +18,14 @@ export default function ProductDetail({ onAddToCart, toggleFavorite, favorites }
     setActiveTab('description');
 
     // Fetch product details
-    fetch(`http://localhost:5001/api/products/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Product not found');
-        return res.json();
-      })
+    getProduct(id)
       .then((data) => {
         setProduct(data);
         setQuantity(1);
 
         // Fetch related products in the same category
-        return fetch(`http://localhost:5001/api/products?category=${encodeURIComponent(data.category)}`);
+        return getProducts({ category: data.category });
       })
-      .then((res) => res.json())
       .then((data) => {
         // Exclude current product and take up to 4 items
         const filtered = data.filter((item) => item._id !== id).slice(0, 4);

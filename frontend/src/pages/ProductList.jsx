@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Star, Heart, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { getProducts } from '../services/api';
 
 export default function ProductList({ onAddToCart, toggleFavorite, favorites }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,25 +16,8 @@ export default function ProductList({ onAddToCart, toggleFavorite, favorites }) 
 
   useEffect(() => {
     setLoading(true);
-    let url = 'http://localhost:5001/api/products';
-    const params = [];
-    
-    if (categoryFilter && categoryFilter !== 'All') {
-      params.push(`category=${encodeURIComponent(categoryFilter)}`);
-    }
-    if (searchQuery) {
-      params.push(`search=${encodeURIComponent(searchQuery)}`);
-    }
 
-    if (params.length > 0) {
-      url += `?${params.join('&')}`;
-    }
-
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error('Could not fetch products');
-        return res.json();
-      })
+    getProducts({ category: categoryFilter, search: searchQuery })
       .then((data) => {
         // Sort frontend-side for convenience
         let sorted = [...data];

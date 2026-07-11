@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Heart } from 'lucide-react';
+import { getProducts } from '../services/api';
 
 export default function Home({ onAddToCart, toggleFavorite, favorites }) {
   const [products, setProducts] = useState([]);
@@ -8,11 +9,7 @@ export default function Home({ onAddToCart, toggleFavorite, favorites }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/products')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch products');
-        return res.json();
-      })
+    getProducts()
       .then((data) => {
         // Just take the first 4 products as featured
         setProducts(data.slice(0, 4));

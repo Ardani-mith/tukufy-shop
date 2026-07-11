@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, UserPlus, AlertCircle } from 'lucide-react';
+import { register as apiRegister } from '../services/api';
 
 export default function SignUp({ onSignUp, showToast }) {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function SignUp({ onSignUp, showToast }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -39,20 +40,16 @@ export default function SignUp({ onSignUp, showToast }) {
 
     setLoading(true);
 
-    // Mock authentication — simulate network delay
-    setTimeout(() => {
-      const userData = {
-        name: formData.name,
-        email: formData.email,
-        loggedInAt: new Date().toISOString()
-      };
-
-      localStorage.setItem('tukufy_user', JSON.stringify(userData));
-      onSignUp(userData);
-      showToast(`Account created! Welcome, ${userData.name}!`);
-      setLoading(false);
+    try {
+      const data = await apiRegister(formData.name, formData.email, formData.password);
+      onSignUp(data.user);
+      showToast(`Account created! Welcome, ${data.user.name}!`);
       navigate('/', { replace: true });
-    }, 800);
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

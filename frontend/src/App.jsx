@@ -9,29 +9,53 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import { getMe, logout as apiLogout } from './services/api';
 
-const AUTH_KEY = 'tukufy_user';
+const CART_KEY = 'tukufy_cart';
+const FAV_KEY = 'tukufy_favorites';
+
+function loadFromStorage(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+}
 
 export default function App() {
-  const [cart, setCart] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  const [cart, setCart] = useState(() => loadFromStorage(CART_KEY, []));
+  const [favorites, setFavorites] = useState(() => loadFromStorage(FAV_KEY, []));
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [redirectTo, setRedirectTo] = useState(null);
 
-  // Initialize auth from localStorage on mount
+  // Check auth status on mount via httpOnly cookie
   useEffect(() => {
-    const stored = localStorage.getItem(AUTH_KEY);
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(AUTH_KEY);
-      }
-    }
+    getMe()
+      .then((data) => {
+        setUser(data.user);
+      })
+      .catch(() => {
+        // Not logged in — that's fine
+        setUser(null);
+      })
+      .finally(() => {
+        setAuthLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
+  }, [favorites]);
 
   const isLoggedIn = user !== null;
 
@@ -40,11 +64,17 @@ export default function App() {
     setRedirectTo(null);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem(AUTH_KEY);
+  const handleLogout = async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Even if the API call fails, clear local state
+    }
     setUser(null);
     setCart([]);
     setFavorites([]);
+    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(FAV_KEY);
     showToast('You have been logged out.', 'info');
   };
 
@@ -189,7 +219,18 @@ export default function App() {
             />
             <Route
               path="/admin"
-              element={<Admin showToast={showToast} />}
+              element={
+                authLoading ? (
+                  <div className="container section-padding" style={{ textAlign: 'center', padding: '80px 20px' }}>
+                    <div className="spinner"></div>
+                    <p style={{ marginTop: '16px', color: 'var(--color-text-secondary)' }}>Loading...</p>
+                  </div>
+                ) : user && user.role === 'admin' ? (
+                  <Admin showToast={showToast} />
+                ) : (
+                  <Navigate to="/login" state={{ from: '/admin' }} replace />
+                )
+              }
             />
             <Route
               path="/login"
