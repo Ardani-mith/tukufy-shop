@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactGA from 'react-ga4';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, LogIn, AlertCircle, Shield, User } from 'lucide-react';
 import { login as apiLogin } from '../services/api';
@@ -39,10 +40,15 @@ export default function Login({ onLogin, showToast }) {
 
     try {
       const data = await apiLogin(formData.email, formData.password);
+      ReactGA.event({
+        category: 'User',
+        action: 'Login Success',
+        label: formData.email
+      });
       onLogin(data.user, data.token);
       showToast(`Welcome back, ${data.user.name}!`);
       navigate(from, { replace: true });
-    } catch (err) {
+    } catch (err) {  
       setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
