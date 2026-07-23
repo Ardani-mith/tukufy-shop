@@ -15,8 +15,9 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middlewares
+// ponytail: allow requested origins for frontend clients
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: ['https://tukufy-shop.vercel.app', 'http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
 app.use(express.json());

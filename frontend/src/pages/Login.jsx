@@ -39,7 +39,7 @@ export default function Login({ onLogin, showToast }) {
 
     try {
       const data = await apiLogin(formData.email, formData.password);
-      onLogin(data.user);
+      onLogin(data.user, data.token);
       showToast(`Welcome back, ${data.user.name}!`);
       navigate(from, { replace: true });
     } catch (err) {

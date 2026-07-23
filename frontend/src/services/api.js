@@ -7,12 +7,18 @@ const API_BASE = 'http://localhost:5001';
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
 
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const config = {
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
+    headers,
     ...options
   };
 

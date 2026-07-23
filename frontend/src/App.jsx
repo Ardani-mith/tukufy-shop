@@ -34,15 +34,14 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [redirectTo, setRedirectTo] = useState(null);
 
-  // Check auth status on mount via httpOnly cookie
   useEffect(() => {
     getMe()
       .then((data) => {
         setUser(data.user);
       })
       .catch(() => {
-        // Not logged in — that's fine
         setUser(null);
+        localStorage.removeItem('token');
       })
       .finally(() => {
         setAuthLoading(false);
@@ -59,8 +58,11 @@ export default function App() {
 
   const isLoggedIn = user !== null;
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData, token) => {
     setUser(userData);
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     setRedirectTo(null);
   };
 
@@ -68,11 +70,11 @@ export default function App() {
     try {
       await apiLogout();
     } catch {
-      // Even if the API call fails, clear local state
     }
     setUser(null);
     setCart([]);
     setFavorites([]);
+    localStorage.removeItem('token');
     localStorage.removeItem(CART_KEY);
     localStorage.removeItem(FAV_KEY);
     showToast('You have been logged out.', 'info');

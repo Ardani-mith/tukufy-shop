@@ -42,7 +42,7 @@ export default function SignUp({ onSignUp, showToast }) {
 
     try {
       const data = await apiRegister(formData.name, formData.email, formData.password);
-      onSignUp(data.user);
+      onSignUp(data.user, data.token);
       showToast(`Account created! Welcome, ${data.user.name}!`);
       navigate('/', { replace: true });
     } catch (err) {

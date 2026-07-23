@@ -37,8 +37,10 @@ router.post('/register', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
+    // ponytail: include token in response for localStorage
     res.status(201).json({
       message: 'Account created successfully!',
+      token,
       user: user.toJSON()
     });
   } catch (error) {
@@ -84,8 +86,10 @@ router.post('/login', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
+    // ponytail: include token in response for localStorage
     res.json({
       message: 'Login successful!',
+      token,
       user: user.toJSON()
     });
   } catch (error) {
